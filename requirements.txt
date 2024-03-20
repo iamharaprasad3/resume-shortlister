@@ -8,3 +8,4 @@ re
 pandas
 io
 spire.doc
+openpyxl
