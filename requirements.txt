@@ -1,2 +1,10 @@
 streamlit
 google-generativeai
+spacy
+pdfminer
+dateutil
+tempfile
+re
+pandas
+io
+spire.doc
