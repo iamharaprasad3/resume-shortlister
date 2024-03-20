@@ -1,6 +1,6 @@
 streamlit
 google-generativeai
-spacy=3.7.2
+spacy==3.7.2
 pdfminer-six
 pandas
 spire.doc
