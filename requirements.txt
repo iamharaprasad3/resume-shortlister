@@ -5,3 +5,5 @@ pdfminer-six
 pandas
 spire.doc
 openpyxl
+en_core_web_sm
+en_core_web_lg
