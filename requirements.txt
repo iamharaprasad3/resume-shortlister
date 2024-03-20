@@ -1,8 +1,8 @@
 streamlit
 google-generativeai
-spacy
+spacy=3.7.2
 pdfminer-six
 pandas
 spire.doc
 openpyxl
-en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.0/en_core_web_sm-2.2.0.tar.gz
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz
