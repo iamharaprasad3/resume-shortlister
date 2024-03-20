@@ -1,7 +1,7 @@
 streamlit
 google-generativeai
 spacy
-pdfminer
+pdfminer-six
 pandas
 spire.doc
 openpyxl
