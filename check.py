@@ -107,8 +107,8 @@ def extract_technical_keywords(paragraph):
 
     doc = nlp(paragraph)
 
-    filler_words = ['comprehensive', 'knowledge', 'expertise', 'must', 'prior', 'experience',
-                    'basic', 'understanding', 'of', 'is', 'a', 'and', 'in', 'new', '\n\n', ' \n\n', ' \n']
+    filler_words = ['comprehensive', 'knowledge', 'expertise', 'must', 'prior', 'experience', 'able', 'etc', 'as', 'such', 'enable', 'other', 'skills', 'preferred', 'that', 
+                    'basic', 'understanding', 'arise' ,'of', 'is', 'a', 'and', 'in', 'new', 'have', 'strong', 'able', 'to', 'the', 'contribute', 'developing', 'intelligent' , 'solutions', '\n\n', ' \n\n', ' \n']
 
     technical_keywords = [token.text.lower() for token in doc
                           if token.text.lower() not in filler_words
@@ -404,7 +404,7 @@ def runningmain(text_content, file_name, text):
     if(total_words > 0):
         print(words_in_pdf/total_words)
         st.write(f"Percentage of Keywords found in the resume: + {(words_in_pdf/total_words)*100}") 
-        if(words_in_pdf/total_words >= 0.4):
+        if(words_in_pdf/total_words >= 0.5):
             total_score = total_score + 10
     else:
         total_score = total_score + 3
@@ -465,6 +465,8 @@ else:
     department = extract_text_after_keyword(text, "Department")
     min_ex = extract_minimum_experience(text)
     tech_skills_para = extract_content_between_keywords(text, 'Technical Skills Required', 'Behavioral Skills Required')
+    if(type(tech_skills_para) != 'String'):
+        tech_skills_para = extract_content_between_keywords(text, 'Technical Skills Required', 'Behavioural Skills Required')
     keywords = extract_technical_keywords(tech_skills_para)
 
     print("Role - " + role)
