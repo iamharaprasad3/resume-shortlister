@@ -405,7 +405,7 @@ def runningmain(text_content, file_name, text):
     if(total_words > 0):
         print(words_in_pdf/total_words)
         st.write(f"Percentage of Keywords found in the resume: + {(words_in_pdf/total_words)*100}") 
-        if(words_in_pdf/total_words >= 0.5):
+        if(words_in_pdf/total_words >= 0.4):
             total_score = total_score + 10
     else:
         total_score = total_score + 3
