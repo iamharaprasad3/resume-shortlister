@@ -254,59 +254,59 @@ def runningmain(text_content, file_name, text):
     gaps = 0
     total_months = 0
 
-    for date_range in date_ranges:
-        date_range = date_range.replace('to', '-')
-        date_range = date_range.replace('till', '-')
-        date_range = date_range.replace('until', '-')
-        date_range = date_range.replace('–', '-')
-        # print(date_range)
+    # for date_range in date_ranges:
+    #     date_range = date_range.replace('to', '-')
+    #     date_range = date_range.replace('till', '-')
+    #     date_range = date_range.replace('until', '-')
+    #     date_range = date_range.replace('–', '-')
+    #     # print(date_range)
 
-        start_date, end_date = [date.strip() for date in date_range.split('-')]
+    #     start_date, end_date = [date.strip() for date in date_range.split('-')]
 
-        start_date = convert_two_digit_year(start_date)
-        # st.write("Job Starting Date - ", start_date)
-        print(start_date)
-        end_date = convert_two_digit_year(end_date)
-        # st.write("Job Ending Date - ", end_date)
-        print(end_date)
-        months_difference = calculate_month_difference(start_date, end_date)
-        total_months = total_months + months_difference
+    #     start_date = convert_two_digit_year(start_date)
+    #     # st.write("Job Starting Date - ", start_date)
+    #     print(start_date)
+    #     end_date = convert_two_digit_year(end_date)
+    #     # st.write("Job Ending Date - ", end_date)
+    #     print(end_date)
+    #     months_difference = calculate_month_difference(start_date, end_date)
+    #     total_months = total_months + months_difference
         
-        if months_difference is not None:
-            if months_difference < 12:
-                less_month_cnt += 1
-            print(f"Time between {start_date} and {end_date}: {months_difference} months")
-            # st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
+    #     if months_difference is not None:
+    #         if months_difference < 12:
+    #             less_month_cnt += 1
+    #         print(f"Time between {start_date} and {end_date}: {months_difference} months")
+    #         # st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
 
-            if new_job_start_date:
-                previous_job_end_date = end_date
-                if previous_job_end_date == 'present':
-                    new_job_start_date = start_date
-                    previous_job_end_date = None
-                else:
-                    print("prev_job_end_date = ", previous_job_end_date)
-                    # st.write("prev_job_end_date = ", previous_job_end_date)
-                    print("new_job_Start_date = ", new_job_start_date)
-                    # st.write("new_job_Start_date = ", new_job_start_date)
-                    gap_months = calculate_month_difference(new_job_start_date, previous_job_end_date)
-                    print("gaaap - ", gap_months)
-                    # st.write("gap - ", gap_months)
-                    if(gap_months < -3):
-                        gaps = gaps+1
-                    new_job_start_date = start_date
-                    previous_job_end_date = None
-            else:
-                new_job_start_date = start_date 
-                print("new_job_Start_date = ", new_job_start_date)
-                # st.write("new_job_Start_date = ", new_job_start_date)
-                print("prev_job_end_date = ", previous_job_end_date)
-                # st.write("prev_job_end_date = ", previous_job_end_date)
+    #         if new_job_start_date:
+    #             previous_job_end_date = end_date
+    #             if previous_job_end_date == 'present':
+    #                 new_job_start_date = start_date
+    #                 previous_job_end_date = None
+    #             else:
+    #                 print("prev_job_end_date = ", previous_job_end_date)
+    #                 # st.write("prev_job_end_date = ", previous_job_end_date)
+    #                 print("new_job_Start_date = ", new_job_start_date)
+    #                 # st.write("new_job_Start_date = ", new_job_start_date)
+    #                 gap_months = calculate_month_difference(new_job_start_date, previous_job_end_date)
+    #                 print("gaaap - ", gap_months)
+    #                 # st.write("gap - ", gap_months)
+    #                 if(gap_months < -3):
+    #                     gaps = gaps+1
+    #                 new_job_start_date = start_date
+    #                 previous_job_end_date = None
+    #         else:
+    #             new_job_start_date = start_date 
+    #             print("new_job_Start_date = ", new_job_start_date)
+    #             # st.write("new_job_Start_date = ", new_job_start_date)
+    #             print("prev_job_end_date = ", previous_job_end_date)
+    #             # st.write("prev_job_end_date = ", previous_job_end_date)
 
 
-        else:
-            print(f"Currently employed from {start_date}")
-            # st.write(f"Currently employed from {start_date}")
-            previous_job_end_date = None
+    #     else:
+    #         print(f"Currently employed from {start_date}")
+    #         # st.write(f"Currently employed from {start_date}")
+    #         previous_job_end_date = None
 
     if(less_month_cnt < 2):
         total_score = total_score + 10
