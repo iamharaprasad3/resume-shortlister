@@ -321,14 +321,14 @@ def runningmain(text_content, file_name, text):
         dicc.update({"Job Switches":"FAIL"})
 
     print("total Months = ", total_months)
-    # st.write("total experience = ", total_months/12)
-    if(total_months/12 < minimum_exp):
-        print("Minimum Experience Criteria Doesn't matcjh")
-        st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
-        total_score = -100
-        dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
-    else:
-        dicc.update({"Experience":"PASS"})
+    # # st.write("total experience = ", total_months/12)
+    # if(total_months/12 < minimum_exp):
+    #     print("Minimum Experience Criteria Doesn't matcjh")
+    #     st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
+    #     total_score = -100
+    #     dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
+    # else:
+    #     dicc.update({"Experience":"PASS"})
 
     if(gaps < 2):
         total_score = total_score + 10
