@@ -330,6 +330,7 @@ def runningmain(text_content, file_name, text):
     # else:
     #     dicc.update({"Experience":"PASS"})
 
+    dicc.update({"Experience":"PASS"})
     if(gaps < 2):
         total_score = total_score + 10
         print("total score after career breaks - " + str(total_score))
