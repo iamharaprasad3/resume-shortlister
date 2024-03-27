@@ -267,10 +267,6 @@ def runningmain(text_content, file_name, text):
     total_months = 0
 
     for date_range in date_ranges:
-        # date_range = date_range.replace('to', '-')
-        # date_range = date_range.replace('till', '-')
-        # date_range = date_range.replace('until', '-')
-        # date_range = date_range.replace('–', '-')
         print("hjhhjhj----", date_range)
 
         start_date, end_date = [date.strip() for date in date_range.split('-')]
