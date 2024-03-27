@@ -107,7 +107,9 @@ def extract_technical_keywords(paragraph):
     doc = nlp(paragraph)
 
     filler_words = ['comprehensive', 'knowledge', 'expertise', 'must', 'prior', 'experience', 'able', 'etc', 'as', 'such', 'enable', 'other', 'skills', 'preferred', 'that', 
-                    'basic', 'understanding', 'arise' ,'of', 'is', 'a', 'and', 'in', 'new', 'have', 'strong', 'able', 'to', 'the', 'contribute', 'developing', 'intelligent' , 'solutions', '\n\n', ' \n\n', ' \n']
+                    'basic', 'understanding', 'arise' ,'of', 'is', 'a', 'and', 'in', 'new', 'have', 'strong', 'able', 'to', 'the', 'contribute', 'developing', 'intelligent' , 'solutions',
+                     'have', 'strong', 'of', 'enable', 'ability', 'contribute', 'will', 'be', 'going', 'to', '&', 'in', 'with', 'within', 'our', 'provide', 'you', 'propose', 
+                     'skills' , 'Hands-on', 'experience' ,'\n\n', ' \n\n', ' \n']
 
     technical_keywords = [token.text.lower() for token in doc
                           if token.text.lower() not in filler_words
@@ -218,11 +220,11 @@ def extract_scores(academic_scores):
 def extract_year_score(text_content):
     content =  '''
                             This is the text extracted from the resume of a candidate - {text_content}
-                            Return a JSON with two fields containing lists, first is the list of date ranges that the candidate has mentioned in the resume, for example if someone has worked in company abc from jan 2021 - aug 2023, send this range as January 2021 - August
-                            2023, similarly if someone has worked for company b from Nov’07-Present, add it to the date ranges list as November 2007 - March 2024, these dates are only for example dont add them in the final list. Extract dates only if they are related to the work experience
-                            of the candidate, don't extract other dates like their years of graduation or any certification and arrange this list of date ranges in order of recent dates to past dates. 
-                            The second list should be the list of academic scores found in the resume of the candidate, percentage or cgpa of graduation, post graduation or school
-                            if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2           '''
+                            Return a JSON with two fields containing lists, first is the list of date ranges named date_ranges that the candidate has mentioned in the resume, for example if someone has worked in company abc from jan 2021 - aug 2023, send this range as January 2021 - August 2023, 
+                            similarly if someone has worked for company b from Nov’07-Present, add it to the date ranges list as November 2007 - Present, if a date range inside the text content ends with present, till now or today like July 2019 - today, convert words like today, till now, till today to the word present, these dates are only for example dont add them in the final list. Extract date ranges only if they are related to the work experience
+                            of the candidate, don't extract single dates like July 2023 or any other dates like their years of graduation or any certification and arrange this list of date ranges in order of recent dates to past dates. 
+                            The second list named academic_scores should be the list of academic scores found in the resume of the candidate, percentage or cgpa of graduation, post graduation or school
+                            if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2        '''
 
     formatted_text = content.format(
         text_content=text_content
@@ -258,16 +260,17 @@ def runningmain(text_content, file_name, text):
     academic_scores = response_data.get('academic_scores', [])
 
     less_month_cnt = 0
+    month_flag = False
     new_job_start_date = None
     previous_job_end_date = None
     gaps = 0
     total_months = 0
 
     for date_range in date_ranges:
-        date_range = date_range.replace('to', '-')
-        date_range = date_range.replace('till', '-')
-        date_range = date_range.replace('until', '-')
-        date_range = date_range.replace('–', '-')
+        # date_range = date_range.replace('to', '-')
+        # date_range = date_range.replace('till', '-')
+        # date_range = date_range.replace('until', '-')
+        # date_range = date_range.replace('–', '-')
         print("hjhhjhj----", date_range)
 
         start_date, end_date = [date.strip() for date in date_range.split('-')]
@@ -318,42 +321,50 @@ def runningmain(text_content, file_name, text):
             # st.write(f"Currently employed from {start_date}")
         #     previous_job_end_date = None
 
-    if(less_month_cnt < 2):
-        total_score = total_score + 10
-        print("total score after job duration - " + str(total_score))
-        st.write(f"**Candidate hasn't switched jobs before completing 12 months of tenure**")
-        st.write(f":red[Score till now] - **({str(total_score)}/50)**")
-        dicc.update({"Job Switches":"PASS"})
+    if(len(date_ranges) == 0):
+        st.write("Couldn't find experience")
+        dicc.update({"Experience":"NOT FOUND"})
+        dicc.update({"Career Breaks":"NOT FOUND"})
+        dicc.update({"Job Switches":"NOT FOUND"})
     else:
-        total_score = total_score + 1
-        print("leaving orgs early")
-        st.write("**Candidate has switched jobs before completing 12 months of tenure**")
-        dicc.update({"Job Switches":"FAIL"})
-
-    print("total Months = ", total_months)
-    # st.write("total experience = ", total_months/12)
-    if(total_months/12 < minimum_exp):
-        print("Minimum Experience Criteria Doesn't matcjh")
-        st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
-        # total_score = -100
-        dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
-    else:
-        dicc.update({"Experience":"PASS"})
-
-    if(gaps < 2):
-        total_score = total_score + 10
-        print("total score after career breaks - " + str(total_score))
-        st.write(f"**Candidate doesn't have two career breaks more than 3 months**")
-        st.write(f":red[Score till now] - **({str(total_score)}/50)**")
-        dicc.update({"Career Breaks":"PASS"})
-    else:
-        total_score = total_score + 1
-        print("having more than one 3 month career break")
-        st.write(f"**Candidate has more than one career break of 3 months each**")
-        st.write(f":red[Score till now] - **({str(total_score)}/50)**")
-        dicc.update({"Career Breaks":"FAIL"})
+        if(less_month_cnt < 2):
+            total_score = total_score + 10
+            print("total score after job duration - " + str(total_score))
+            st.write(f"**Candidate hasn't switched jobs before completing 12 months of tenure**")
+            st.write(f":red[Score till now] - **({str(total_score)}/50)**")
+            dicc.update({"Job Switches":"PASS"})
+        else:
+            total_score = total_score + 1
+            print("leaving orgs early")
+            st.write("**Candidate has switched jobs before completing 12 months of tenure**")
+            dicc.update({"Job Switches":"FAIL"})
 
 
+        print("total Months = ", total_months)
+        # st.write("total experience = ", total_months/12)
+        if(total_months/12 < minimum_exp):
+            print("Minimum Experience Criteria Doesn't matcjh")
+            st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
+            # total_score = -100
+            dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
+        else:
+            dicc.update({"Experience":"PASS"})
+
+        if(gaps < 2):
+            total_score = total_score + 10
+            print("total score after career breaks - " + str(total_score))
+            st.write(f"**Candidate doesn't have two career breaks more than 3 months**")
+            st.write(f":red[Score till now] - **({str(total_score)}/50)**")
+            dicc.update({"Career Breaks":"PASS"})
+        else:
+            total_score = total_score + 1
+            print("having more than one 3 month career break")
+            st.write(f"**Candidate has more than one career break of 3 months each**")
+            st.write(f":red[Score till now] - **({str(total_score)}/50)**")
+            dicc.update({"Career Breaks":"FAIL"})
+   
+
+    st.write(f"Scores found in the resume : {academic_scores}")
     score = extract_scores(academic_scores)
     if(score == 1):
         total_score = total_score+10
@@ -446,6 +457,8 @@ else:
     if(tech_skills_para is None):
         print("andar")
         tech_skills_para = extract_content_between_keywords(text, 'Technical Skills Required', 'Behavioural Skills Required')
+    if(tech_skills_para is None):
+        tech_skills_para = extract_content_between_keywords(text, 'Skills Required', 'Job Responsibilities')
     
     keywords = extract_technical_keywords(tech_skills_para)
 
