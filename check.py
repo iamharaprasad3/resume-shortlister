@@ -502,7 +502,10 @@ if(jd_done):
             print(f.name)
             st.write("--------------------")
             st.header(uploaded_resume.name)
-            runningmain(text_content, uploaded_resume.name, text)
+            try:
+                runningmain(text_content, uploaded_resume.name, text)
+            except Exception as e:
+                st.write("exception with this one")
 
 
 sorted_scores = sorted(list_of_score.items(), key=lambda x: x[1]['TOTAL SCORE'], reverse=True)
