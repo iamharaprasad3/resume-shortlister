@@ -7,7 +7,6 @@ from dateutil import relativedelta
 import pandas as pd
 import re
 from tempfile import NamedTemporaryFile
-import os
 import json
 import requests
 from io import BytesIO
@@ -119,9 +118,11 @@ def extract_technical_keywords(paragraph):
     return technical_keywords
 
 def extract_date_ranges(text):
-    date_range_pattern = re.compile(r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\'?\’?\s?(?:\d{2,4}|\'\d{2})\s?(?:-|–|to|till|until)\s?(?:Present|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\'?\’?\s?(?:\d{2,4}|\'\d{2}))?\b', re.IGNORECASE)    
+    # date_range_pattern = re.compile(r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\'?\’?\s?(?:\d{2,4}|\'\d{2})\s?(?:-|–|to|till|until)\s?(?:Present|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\'?\’?\s?(?:\d{2,4}|\'\d{2}))?\b', re.IGNORECASE)    
+    date_range_pattern = re.compile(r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\'?\’?\s?(?:\d{2,4}|\'\d{2})\s?(?:-|–|to|till|until)\s*(?:Present|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\'?\’?\s?(?:\d{2,4}|\'\d{2}))?\b', re.IGNORECASE)
 
     matches = date_range_pattern.findall(text)
+    print(matches)
     return matches
 
 def convert_two_digit_year(date_string):
@@ -150,19 +151,6 @@ def calculate_month_difference(start_date_str, end_date_str):
 
 # Score or percentage extraction
 flag = 1    
-# def extract_scores(text):
-#     score_pattern = re.compile(r'\d?\d\.\d?\d')
-#     matches = score_pattern.findall(text)
-
-#     return matches
-
-def extract_percentages(text):
-    percentage_pattern = re.compile(r'\d\d%|\d\d\.\d\d%')
-
-    matches = percentage_pattern.findall(text)
-
-    return matches
-
 
 def check_words_in_pdf(text_content, words_to_check):
     word_count = {word: text_content.lower().count(word.lower()) for word in words_to_check}
@@ -201,12 +189,40 @@ def get_similarity_score(job_responsibilities, text_content):
         print("No number found in the text")
         return 5
     
-def extract_scores(text_content):
+def extract_scores(academic_scores):
+    pattern = re.compile(r'[-]?\d+(\.\d+)?')
+    xy = ','.join(academic_scores)
+    print("xy ", xy)
+    matches = pattern.finditer(xy)
+
+    numbers = [float(match.group()) for match in matches if match.group()]
+    print(numbers)
+    # st.write("Scores Found - ", numbers)
+    number_flag = True
+    for number in numbers:
+        if(number == 4.33):
+            continue
+        elif(number <= 10):
+            if(number < 6 and number > 4.33):
+                number_flag = False
+            elif(number < 2.6):
+                number_flag = False
+        elif(number<100 and number<60):
+            number_flag = False
+
+    if(number_flag):
+        print(1)
+    else:
+        print(0)
+
+def extract_year_score(text_content):
     content =  '''
                             This is the text extracted from the resume of a candidate - {text_content}
-                            Find out if the candidate has mentioned his scores/percentage/marks in graduation, post graduation, school 10th or 12th class. If you find the score or percentage
-                            give it in a list like this - 89%, 81.7%, 9.87. If not found just write - "Not Found"
-                            '''
+                            Return a JSON with two fields containing lists, first is the list of date ranges that the candidate has mentioned in the resume, for example if someone has worked in company abc from jan 2021 - aug 2023, send this range as January 2021 - August
+                            2023, similarly if someone has worked for company b from Nov’07-Present, add it to the date ranges list as November 2007 - March 2024, these dates are only for example dont add them in the final list. Extract dates only if they are related to the work experience
+                            of the candidate, don't extract other dates like their years of graduation or any certification and arrange this list of date ranges in order of recent dates to past dates. 
+                            The second list should be the list of academic scores found in the resume of the candidate, percentage or cgpa of graduation, post graduation or school
+                            if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2           '''
 
     formatted_text = content.format(
         text_content=text_content
@@ -220,33 +236,26 @@ def extract_scores(text_content):
         # print(f"Error: {e}")
         print("Internal Server Error, can't reach AI servers")
         desired_text = "Internal Server Error, can't reach AI servers"
-    
-    print(desired_text)
 
-    pattern = re.compile(r'[-]?\d+(\.\d+)?')
-    matches = pattern.finditer(desired_text)
-    numbers = [float(match.group()) for match in matches if match.group()]
-    print(numbers)
-    st.write("Scores Found - ", numbers)
-    number_flag = True
-    for number in numbers:
-        if(number <= 10):
-            if(number < 6):
-                number_flag = False
-        elif(number<100 and number<60):
-            number_flag = False
-
-    if(number_flag):
-        return 1
-    else:
-        return 0
+    return desired_text
 
 
 def runningmain(text_content, file_name, text):
     total_score = 0
     dicc ={}
 
-    date_ranges = extract_date_ranges(text_content)
+    desired_text = extract_year_score(text_content)
+
+
+    desired_text = desired_text.replace("```", "")
+    desired_text = desired_text.replace("json", "")
+    desired_text = desired_text.replace("```", "")
+    desired_text = desired_text.replace("JSON", "")
+
+    response_data = json.loads(desired_text)
+
+    date_ranges = response_data.get('date_ranges', [])
+    academic_scores = response_data.get('academic_scores', [])
 
     less_month_cnt = 0
     new_job_start_date = None
@@ -254,59 +263,60 @@ def runningmain(text_content, file_name, text):
     gaps = 0
     total_months = 0
 
-    # for date_range in date_ranges:
-    #     date_range = date_range.replace('to', '-')
-    #     date_range = date_range.replace('till', '-')
-    #     date_range = date_range.replace('until', '-')
-    #     date_range = date_range.replace('–', '-')
-    #     # print(date_range)
+    for date_range in date_ranges:
+        date_range = date_range.replace('to', '-')
+        date_range = date_range.replace('till', '-')
+        date_range = date_range.replace('until', '-')
+        date_range = date_range.replace('–', '-')
+        print("hjhhjhj----", date_range)
 
-    #     start_date, end_date = [date.strip() for date in date_range.split('-')]
+        start_date, end_date = [date.strip() for date in date_range.split('-')]
 
-    #     start_date = convert_two_digit_year(start_date)
-    #     # st.write("Job Starting Date - ", start_date)
-    #     print(start_date)
-    #     end_date = convert_two_digit_year(end_date)
-    #     # st.write("Job Ending Date - ", end_date)
-    #     print(end_date)
-    #     months_difference = calculate_month_difference(start_date, end_date)
-    #     total_months = total_months + months_difference
-        
-    #     if months_difference is not None:
-    #         if months_difference < 12:
-    #             less_month_cnt += 1
-    #         print(f"Time between {start_date} and {end_date}: {months_difference} months")
-    #         # st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
+        try:
+            start_date = convert_two_digit_year(start_date)
+            print(start_date)
+            end_date = convert_two_digit_year(end_date)
+            print(end_date)
+            months_difference = calculate_month_difference(start_date, end_date)
+            total_months = total_months + months_difference
+        except requests.exceptions.RequestException as e:
+            print({e})
+            break 
 
-    #         if new_job_start_date:
-    #             previous_job_end_date = end_date
-    #             if previous_job_end_date == 'present':
-    #                 new_job_start_date = start_date
-    #                 previous_job_end_date = None
-    #             else:
-    #                 print("prev_job_end_date = ", previous_job_end_date)
-    #                 # st.write("prev_job_end_date = ", previous_job_end_date)
-    #                 print("new_job_Start_date = ", new_job_start_date)
-    #                 # st.write("new_job_Start_date = ", new_job_start_date)
-    #                 gap_months = calculate_month_difference(new_job_start_date, previous_job_end_date)
-    #                 print("gaaap - ", gap_months)
-    #                 # st.write("gap - ", gap_months)
-    #                 if(gap_months < -3):
-    #                     gaps = gaps+1
-    #                 new_job_start_date = start_date
-    #                 previous_job_end_date = None
-    #         else:
-    #             new_job_start_date = start_date 
-    #             print("new_job_Start_date = ", new_job_start_date)
-    #             # st.write("new_job_Start_date = ", new_job_start_date)
-    #             print("prev_job_end_date = ", previous_job_end_date)
-    #             # st.write("prev_job_end_date = ", previous_job_end_date)
+        if months_difference is not None:
+            if months_difference < 12:
+                less_month_cnt += 1
+            print(f"Time between {start_date} and {end_date}: {months_difference} months")
+            # st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
 
+            if new_job_start_date:
+                previous_job_end_date = end_date
+                if previous_job_end_date == 'present':
+                    new_job_start_date = start_date
+                    previous_job_end_date = None
+                else:
+                    print("prev_job_end_date = ", previous_job_end_date)
+                    # st.write("prev_job_end_date = ", previous_job_end_date)
+                    print("new_job_Start_date = ", new_job_start_date)
+                    # st.write("new_job_Start_date = ", new_job_start_date)
+                    gap_months = calculate_month_difference(new_job_start_date, previous_job_end_date)
+                    print("gaaap - ", gap_months)
+                    # st.write("gap - ", gap_months)
+                    if(gap_months < -3):
+                        gaps = gaps+1
+                    new_job_start_date = start_date
+                    previous_job_end_date = None
+            else:
+                new_job_start_date = start_date 
+                print("new_job_Start_date = ", new_job_start_date)
+                # st.write("new_job_Start_date = ", new_job_start_date)
+                print("prev_job_end_date = ", previous_job_end_date)
+                # st.write("prev_job_end_date = ", previous_job_end_date)
 
-    #     else:
-    #         print(f"Currently employed from {start_date}")
-    #         # st.write(f"Currently employed from {start_date}")
-    #         previous_job_end_date = None
+        else:
+            print(f"Currently employed from {start_date}")
+            # st.write(f"Currently employed from {start_date}")
+        #     previous_job_end_date = None
 
     if(less_month_cnt < 2):
         total_score = total_score + 10
@@ -321,16 +331,15 @@ def runningmain(text_content, file_name, text):
         dicc.update({"Job Switches":"FAIL"})
 
     print("total Months = ", total_months)
-    # # st.write("total experience = ", total_months/12)
-    # if(total_months/12 < minimum_exp):
-    #     print("Minimum Experience Criteria Doesn't matcjh")
-    #     st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
-    #     total_score = -100
-    #     dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
-    # else:
-    #     dicc.update({"Experience":"PASS"})
+    # st.write("total experience = ", total_months/12)
+    if(total_months/12 < minimum_exp):
+        print("Minimum Experience Criteria Doesn't matcjh")
+        st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
+        # total_score = -100
+        dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
+    else:
+        dicc.update({"Experience":"PASS"})
 
-    dicc.update({"Experience":"PASS"})
     if(gaps < 2):
         total_score = total_score + 10
         print("total score after career breaks - " + str(total_score))
@@ -345,39 +354,7 @@ def runningmain(text_content, file_name, text):
         dicc.update({"Career Breaks":"FAIL"})
 
 
-
-    # Score or percentage extraction
-    # flag = 1    
-
-    # scores = extract_scores(text_content)
-    # percentages = extract_percentages(text_content)
-    # print("Extracted Scores:")
-    # st.write("Extracted Scores:")
-    # for score in scores:
-    #     st.write(score)
-    #     print(score)
-    #     if(float(score) < 10 and float(score) < 6 and float(score) > 4):
-    #         flag = 0
-    #         print("below par score")
-    #         st.write("below par score")
-
-    # print("Extracted Percentages")
-    # st.write("Extracted Percentages")
-    # for percentage in percentages:
-    #     st.write(percentage)
-    #     print(percentage)
-    #     percentage = percentage.replace("%", "")
-    #     if(float(percentage) > 10 and float(percentage)  < 60 and float(percentage) > 40):
-    #         flag = 0
-    #         print("below par percentage")
-    #         st.write("below par percentage")
-
-    # if(flag):
-    #     total_score = total_score + 10    
-    # else:
-    #     total_score = total_score + 2
-
-    score = extract_scores(text_content)
+    score = extract_scores(academic_scores)
     if(score == 1):
         total_score = total_score+10
         st.write(f"Candidate has academic scores in the acceptable range")
@@ -405,7 +382,7 @@ def runningmain(text_content, file_name, text):
     if(total_words > 0):
         print(words_in_pdf/total_words)
         st.write(f"Percentage of Keywords found in the resume: + {(words_in_pdf/total_words)*100}") 
-        if(words_in_pdf/total_words >= 0.4):
+        if(words_in_pdf/total_words >= 0.5):
             total_score = total_score + 10
     else:
         total_score = total_score + 3
@@ -466,8 +443,10 @@ else:
     department = extract_text_after_keyword(text, "Department")
     min_ex = extract_minimum_experience(text)
     tech_skills_para = extract_content_between_keywords(text, 'Technical Skills Required', 'Behavioral Skills Required')
-    if(type(tech_skills_para) != 'String'):
+    if(tech_skills_para is None):
+        print("andar")
         tech_skills_para = extract_content_between_keywords(text, 'Technical Skills Required', 'Behavioural Skills Required')
+    
     keywords = extract_technical_keywords(tech_skills_para)
 
     print("Role - " + role)
@@ -498,6 +477,7 @@ if(jd_done):
                 with NamedTemporaryFile(dir='.', suffix='.pdf') as f:
                     f.write(uploaded_resume.getbuffer())
                     text_content = convert_pdf_to_text(f.name)
+                    print(text_content)
             elif file_extension == "doc":
                 with NamedTemporaryFile(dir='.', suffix='.doc') as f:
                     f.write(uploaded_resume.getbuffer())
@@ -515,11 +495,6 @@ if(jd_done):
             st.header(uploaded_resume.name)
             runningmain(text_content, uploaded_resume.name, text)
 
-# import operator
-# cd = sorted(list_of_score.items(),key=operator.itemgetter(1),reverse=True)
-# # print(cd)
-# print(*cd, sep = "\n")
-# st.write(*cd, sep = "\n")
 
 sorted_scores = sorted(list_of_score.items(), key=lambda x: x[1]['TOTAL SCORE'], reverse=True)
 
