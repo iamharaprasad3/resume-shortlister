@@ -213,9 +213,9 @@ def extract_scores(academic_scores):
             number_flag = False
 
     if(number_flag):
-        print(1)
+        return 1
     else:
-        print(0)
+        return 0
 
 def extract_year_score(text_content):
     content =  '''
@@ -276,10 +276,10 @@ def runningmain(text_content, file_name, text):
         start_date, end_date = [date.strip() for date in date_range.split('-')]
 
         try:
-            start_date = convert_two_digit_year(start_date)
-            print(start_date)
-            end_date = convert_two_digit_year(end_date)
-            print(end_date)
+            # start_date = convert_two_digit_year(start_date)
+            # print(start_date)
+            # end_date = convert_two_digit_year(end_date)
+            # print(end_date)
             months_difference = calculate_month_difference(start_date, end_date)
             total_months = total_months + months_difference
         except requests.exceptions.RequestException as e:
