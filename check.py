@@ -140,7 +140,7 @@ def convert_two_digit_year(date_string):
         return date_string
     
 def calculate_month_difference(start_date_str, end_date_str):
-    if end_date_str.lower() == 'present':
+    if end_date_str.lower() == 'present' or  end_date_str.lower() == 'current' or  end_date_str.lower() == 'till now' or  end_date_str.lower() == 'till today' or  end_date_str.lower() == 'today':
         end_date_str = datetime.now().strftime("%b %Y")
 
     start_date = parser.parse(start_date_str)
