@@ -474,7 +474,7 @@ else:
         minimum_exp = int(pattern.search(min_ex[0]).group(1)) if pattern.search(min_ex[0]) else None
     except Exception as e:
         st.write("Couldn't parse minimum experience, please write")
-        minimum_exp = st.text_input("Please enter a single digit")
+        minimum_exp = int(st.text_input("Please enter a single digit"))
     print("minimum experience - ", minimum_exp)
 
     jd_done = True
@@ -531,6 +531,4 @@ st.download_button(
     file_name='large_df.csv',
     mime='text/csv',
 )
-
-
 
