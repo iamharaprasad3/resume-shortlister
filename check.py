@@ -519,19 +519,17 @@ for file_name, attributes in sorted_scores:
 
 df = pd.DataFrame(data, columns=["File Name", "Job Switch", "Experience", "Career Breaks", "Keyword Matching Percentage", "Similarity Score", "Result", "Total Score"])
 
-excel_buffer = BytesIO()
-df.to_excel(excel_buffer, index=False)
-excel_buffer.seek(0)
+csv = df.to_csv().encode('utf-8')
 
-import base64
+st.download_button(
+    label="Download data as CSV",
+    data=csv,
+    file_name='large_df.csv',
+    mime='text/csv',
+)
 
-excel_byte_stream = excel_buffer.getvalue()
 
-excel_base64 = base64.b64encode(excel_byte_stream).decode()
-download_link = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{excel_base64}">Download Excel file</a>'
 
-st.markdown(download_link, unsafe_allow_html=True)
-                            
 
 
     
