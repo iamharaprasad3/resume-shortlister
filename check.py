@@ -303,7 +303,7 @@ def runningmain(text_content, file_name, text):
 
         if "(work)" in period_type:
             start_month, start_year = work_period.split(" ")
-            end_month, end_year = parts[1].split(" ")[0], parts[1].split(" ")[1]
+            end_month, end_year = parts[1].split(" ")[0], parts[1].split("(")[1]
             duration = calculate_duration(start_month, int(start_year), end_month, int(end_year))
 
             if duration < 12:
