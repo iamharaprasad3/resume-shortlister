@@ -317,7 +317,6 @@ def runningmain(text_content, file_name, text):
 
         total_experience += duration
 
-        start_date, end_date = [date.strip() for date in date_range.split('-')]
         date_range = date_range.replace(" (work)", "")
         date_range = date_range.replace(" (education)", "")
         date_range = date_range.replace(" (internship)", "")
@@ -325,7 +324,8 @@ def runningmain(text_content, file_name, text):
         date_range = date_range.replace("(education)", "")
         date_range = date_range.replace("(internship)", "")
         date_range = date_range.replace(".", "")
-
+        start_date, end_date = [date.strip() for date in date_range.split('-')]
+        
         try:
             months_difference = calculate_month_difference(start_date, end_date)
             total_months = total_months + months_difference
