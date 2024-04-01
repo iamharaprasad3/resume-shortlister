@@ -276,6 +276,9 @@ def runningmain(text_content, file_name, text):
         date_range = date_range.replace(" (work)", "")
         date_range = date_range.replace(" (education)", "")
         date_range = date_range.replace(" (internship)", "")
+        date_range = date_range.replace("(work)", "")
+        date_range = date_range.replace("(education)", "")
+        date_range = date_range.replace("(internship)", "")
 
         try:
             # start_date = convert_two_digit_year(start_date)
