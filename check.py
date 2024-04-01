@@ -307,7 +307,11 @@ def runningmain(text_content, file_name, text):
             end_year = end_year.replace("(work)", "")
             end_year = end_year.replace("(education)", "")
             end_year = end_year.replace("(internship)", "")
-
+            end_year = end_year.replace("(Work)", "")
+            end_year = end_year.replace("(Education)", "")
+            end_year = end_year.replace("(Internship)", "")
+            end_year = end_year.replace("(.)", "")
+            
             duration = calculate_duration(start_month, int(start_year), end_month, int(end_year))
 
             if duration < 12:
@@ -324,7 +328,7 @@ def runningmain(text_content, file_name, text):
         date_range = date_range.replace("(Education)", "")
         date_range = date_range.replace("(Internship)", "")
         date_range = date_range.replace(".", "")
-        start_date, end_date = [date.strip() for date in date_range.split('-')]
+        start_date, end_date = [date.strip() for date in date_range.split(' - ')]
         
         try:
             months_difference = calculate_month_difference(start_date, end_date)
