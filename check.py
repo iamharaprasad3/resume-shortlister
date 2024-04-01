@@ -282,6 +282,7 @@ def runningmain(text_content, file_name, text):
     new_job_start_date = None
     previous_job_end_date = None
     gaps = 0
+    duration = 0
     total_months = 0
     last_work_end_date = None
 
