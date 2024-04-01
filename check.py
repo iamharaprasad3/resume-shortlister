@@ -238,7 +238,7 @@ def extract_year_score(text_content):
                             This is the text extracted from the resume of a candidate - {text_content}
                             Return a JSON with two fields containing lists, first is the list of date ranges named date_ranges that the candidate has mentioned in the resume, for example if someone has done an internship from jan 2021 - aug 2021, send this range as January 2021 - August 2021(internship), 
                             similarly if someone has worked from Nov’17-Present, add it to the date ranges list as November 2007 - Present(work), and if someone has mentioned the dates of their degree it should be added as 2016-2020(education), if a date range inside the text content ends with present, till now or today like July 2019 - today, convert words like today, till now, till today to the word present, these dates are only for example dont add them in the final list. 
-                            Dont extract dates of any certifications or anything other than the things mentioned above and arrange this list of date ranges in order of recent dates to past dates. 
+                            Dont extract dates of any certifications or anything other than the things mentioned above and arrange this list of date ranges in order of recent dates to past dates. This should be in a standard format - "Month Year - Month Year(Type of date_range)"
                             The second list named academic_scores should be the list of academic scores found in the resume of the candidate, percentage or cgpa of graduation, post graduation or school
                             if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2         '''
 
