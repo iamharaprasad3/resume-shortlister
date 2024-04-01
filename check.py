@@ -296,14 +296,17 @@ def runningmain(text_content, file_name, text):
         date_range = date_range.replace("Today", datetime.now().strftime("%b %Y"))
 
 
-
         parts = date_range.split(" - ")
         work_period = parts[0]
         period_type = parts[1]
 
         if "(work)" in period_type:
             start_month, start_year = work_period.split(" ")
-            end_month, end_year = parts[1].split(" ")[0], parts[1].split("(")[1]
+            end_month, end_year = parts[1].split(" ")[0], parts[1].split(" ")[1]
+            end_year = end_year.replace("(work)", "")
+            end_year = end_year.replace("(education)", "")
+            end_year = end_year.replace("(internship)", "")
+
             duration = calculate_duration(start_month, int(start_year), end_month, int(end_year))
 
             if duration < 12:
