@@ -92,6 +92,19 @@ def extract_minimum_experience(text):
     return matches
 
 
+def month_to_num(month):
+    try:
+        return datetime.strptime(month, "%b").month
+    except ValueError:
+        # If the month string does not match the expected format,
+        # try parsing it with a different format
+        return datetime.strptime(month, "%B").month
+
+def calculate_duration(start_month, start_year, end_month, end_year):
+    start_date = datetime(start_year, month_to_num(start_month), 1)
+    end_date = datetime(end_year, month_to_num(end_month), 1)
+    return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month + 1
+
 def extract_content_between_keywords(text, keyword1, keyword2):
     pattern = re.compile(f'{re.escape(keyword1)}(.*?){re.escape(keyword2)}', re.IGNORECASE | re.DOTALL)
     match = pattern.search(text)
@@ -248,6 +261,8 @@ def extract_year_score(text_content):
 def runningmain(text_content, file_name, text):
     total_score = 0
     dicc ={}
+    less_than_12 = 0
+    total_experience = 0
 
     desired_text = extract_year_score(text_content)
 
@@ -268,9 +283,26 @@ def runningmain(text_content, file_name, text):
     previous_job_end_date = None
     gaps = 0
     total_months = 0
+    last_work_end_date = None
 
     for date_range in date_ranges:
         print("hjhhjhj----", date_range)
+
+        parts = date_range.split(" - ")
+        work_period = parts[0]
+        period_type = parts[1]
+
+        if "(work)" in period_type:
+            start_month, start_year = work_period.split(" ")
+            end_month, end_year = parts[1].split(" ")[0], parts[1].split(" ")[1]
+            duration = calculate_duration(start_month, int(start_year), end_month, int(end_year))
+
+            if duration < 12:
+                less_than_12 += 1
+
+            last_work_end_date = datetime(int(end_year), month_to_num(end_month), 1)
+
+        total_experience += duration
 
         start_date, end_date = [date.strip() for date in date_range.split('-')]
         date_range = date_range.replace(" (work)", "")
@@ -279,23 +311,20 @@ def runningmain(text_content, file_name, text):
         date_range = date_range.replace("(work)", "")
         date_range = date_range.replace("(education)", "")
         date_range = date_range.replace("(internship)", "")
+        date_range = date_range.replace(".", "")
 
         try:
-            # start_date = convert_two_digit_year(start_date)
-            # print(start_date)
-            # end_date = convert_two_digit_year(end_date)
-            # print(end_date)
             months_difference = calculate_month_difference(start_date, end_date)
             total_months = total_months + months_difference
         except requests.exceptions.RequestException as e:
-            print({e})
+            # print({e})
             break 
 
         if months_difference is not None:
             if months_difference < 12:
                 less_month_cnt += 1
             print(f"Time between {start_date} and {end_date}: {months_difference} months")
-            # st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
+            st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
 
             if new_job_start_date:
                 previous_job_end_date = end_date
@@ -332,7 +361,7 @@ def runningmain(text_content, file_name, text):
         dicc.update({"Career Breaks":"NOT FOUND"})
         dicc.update({"Job Switches":"NOT FOUND"})
     else:
-        if(less_month_cnt < 2):
+        if(less_than_12 < 2):
             total_score = total_score + 10
             print("total score after job duration - " + str(total_score))
             st.write(f"**Candidate hasn't switched jobs before completing 12 months of tenure**")
@@ -344,10 +373,9 @@ def runningmain(text_content, file_name, text):
             st.write("**Candidate has switched jobs before completing 12 months of tenure**")
             dicc.update({"Job Switches":"FAIL"})
 
-
-        print("total Months = ", total_months)
+        # print("total Months = ", total_months)
         # st.write("total experience = ", total_months/12)
-        if(total_months/12 < minimum_exp):
+        if(total_experience < minimum_exp):
             print("Minimum Experience Criteria Doesn't matcjh")
             st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
             # total_score = -100
@@ -362,7 +390,7 @@ def runningmain(text_content, file_name, text):
             st.write(f":red[Score till now] - **({str(total_score)}/50)**")
             dicc.update({"Career Breaks":"PASS"})
         else:
-            total_score = total_score + 1
+            # total_score = total_score + 1
             print("having more than one 3 month career break")
             st.write(f"**Candidate has more than one career break of 3 months each**")
             st.write(f":red[Score till now] - **({str(total_score)}/50)**")
@@ -375,7 +403,7 @@ def runningmain(text_content, file_name, text):
         total_score = total_score+10
         st.write(f"Candidate has academic scores in the acceptable range")
     else:
-        st.write(f"Candidate has below par scores")
+        st.write(f"Candidate has below par scores or no score found")
     
     st.write(f":red[Score after results extraction] - **({str(total_score)}/50)**")
 
