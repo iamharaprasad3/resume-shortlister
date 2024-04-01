@@ -320,9 +320,9 @@ def runningmain(text_content, file_name, text):
         date_range = date_range.replace(" (work)", "")
         date_range = date_range.replace(" (education)", "")
         date_range = date_range.replace(" (internship)", "")
-        date_range = date_range.replace("(work)", "")
-        date_range = date_range.replace("(education)", "")
-        date_range = date_range.replace("(internship)", "")
+        date_range = date_range.replace("(Work)", "")
+        date_range = date_range.replace("(Education)", "")
+        date_range = date_range.replace("(Internship)", "")
         date_range = date_range.replace(".", "")
         start_date, end_date = [date.strip() for date in date_range.split('-')]
         
