@@ -212,6 +212,9 @@ def extract_scores(academic_scores):
         elif(number<100 and number<60):
             number_flag = False
 
+    if(len(numbers) == 0):
+        number_flag = False
+
     if(number_flag):
         return 1
     else:
@@ -220,11 +223,11 @@ def extract_scores(academic_scores):
 def extract_year_score(text_content):
     content =  '''
                             This is the text extracted from the resume of a candidate - {text_content}
-                            Return a JSON with two fields containing lists, first is the list of date ranges named date_ranges that the candidate has mentioned in the resume, for example if someone has worked in company abc from jan 2021 - aug 2023, send this range as January 2021 - August 2023, 
-                            similarly if someone has worked for company b from Nov’07-Present, add it to the date ranges list as November 2007 - Present, if a date range inside the text content ends with present, till now or today like July 2019 - today, convert words like today, till now, till today to the word present, these dates are only for example dont add them in the final list. Extract date ranges only if they are related to the work experience
-                            of the candidate, don't extract single dates like July 2023 or any other dates like their years of graduation or any certification and arrange this list of date ranges in order of recent dates to past dates. 
+                            Return a JSON with two fields containing lists, first is the list of date ranges named date_ranges that the candidate has mentioned in the resume, for example if someone has done an internship from jan 2021 - aug 2021, send this range as January 2021 - August 2021(internship), 
+                            similarly if someone has worked from Nov’17-Present, add it to the date ranges list as November 2007 - Present(work), and if someone has mentioned the dates of their degree it should be added as 2016-2020(education), if a date range inside the text content ends with present, till now or today like July 2019 - today, convert words like today, till now, till today to the word present, these dates are only for example dont add them in the final list. 
+                            Dont extract dates of any certifications or anything other than the things mentioned above and arrange this list of date ranges in order of recent dates to past dates. 
                             The second list named academic_scores should be the list of academic scores found in the resume of the candidate, percentage or cgpa of graduation, post graduation or school
-                            if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2        '''
+                            if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2         '''
 
     formatted_text = content.format(
         text_content=text_content
@@ -270,6 +273,9 @@ def runningmain(text_content, file_name, text):
         print("hjhhjhj----", date_range)
 
         start_date, end_date = [date.strip() for date in date_range.split('-')]
+        date_range = date_range.replace(" (work)", "")
+        date_range = date_range.replace(" (education)", "")
+        date_range = date_range.replace(" (internship)", "")
 
         try:
             # start_date = convert_two_digit_year(start_date)
@@ -531,4 +537,3 @@ st.download_button(
     file_name='large_df.csv',
     mime='text/csv',
 )
-
