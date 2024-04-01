@@ -287,6 +287,15 @@ def runningmain(text_content, file_name, text):
 
     for date_range in date_ranges:
         print("hjhhjhj----", date_range)
+        date_range = date_range.replace("Present", datetime.now().strftime("%b %Y"))
+        date_range = date_range.replace("present", datetime.now().strftime("%b %Y"))
+        date_range = date_range.replace("till now", datetime.now().strftime("%b %Y"))
+        date_range = date_range.replace("Till Now", datetime.now().strftime("%b %Y"))
+        date_range = date_range.replace("Till now", datetime.now().strftime("%b %Y"))
+        date_range = date_range.replace("today", datetime.now().strftime("%b %Y"))
+        date_range = date_range.replace("Today", datetime.now().strftime("%b %Y"))
+
+
 
         parts = date_range.split(" - ")
         work_period = parts[0]
