@@ -153,7 +153,7 @@ def convert_two_digit_year(date_string):
         return date_string
     
 def calculate_month_difference(start_date_str, end_date_str):
-    if end_date_str.lower() == 'present' or  end_date_str.lower() == 'current' or  end_date_str.lower() == 'till now' or  end_date_str.lower() == 'till today' or  end_date_str.lower() == 'today':
+    if 'present' in end_date_str.lower() or  'current' in end_date_str.lower() or 'till now' in end_date_str.lower() or 'till today' in end_date_str.lower() or 'today'  in end_date_str.lower():
         end_date_str = datetime.now().strftime("%b %Y")
 
     start_date = parser.parse(start_date_str)
@@ -282,8 +282,8 @@ def runningmain(text_content, file_name, text):
     new_job_start_date = None
     previous_job_end_date = None
     gaps = 0
-    duration = 0
     total_months = 0
+    duration = 0
     last_work_end_date = None
 
     for date_range in date_ranges:
