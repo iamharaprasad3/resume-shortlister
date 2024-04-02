@@ -319,7 +319,7 @@ def runningmain(text_content, file_name, text):
             end_year = end_year.replace("(.)", "")
             
             duration = calculate_duration(start_month, int(start_year), end_month, int(end_year))
-
+            st.write(duration)
             if duration < 12:
                 less_than_12 += 1
 
@@ -353,7 +353,7 @@ def runningmain(text_content, file_name, text):
             if months_difference < 12:
                 less_month_cnt += 1
             print(f"Time between {start_date} and {end_date}: {months_difference} months")
-            st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
+            # st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
 
             if new_job_start_date:
                 previous_job_end_date = end_date
@@ -405,9 +405,9 @@ def runningmain(text_content, file_name, text):
         # print("total Months = ", total_months)
         # st.write("total experience = ", total_months/12)
         if(total_experience < minimum_exp):
-            print("Minimum Experience Criteria Doesn't matcjh")
+            print("Minimum Experience Criteria Doesn't match")
             st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
-            # total_score = -100
+            st.write(f"Experience = {total_experience}")
             dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
         else:
             dicc.update({"Experience":"PASS"})
