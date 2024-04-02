@@ -325,7 +325,7 @@ def runningmain(text_content, file_name, text):
             filtered_date_ranges.append(item)
 
     print(filtered_date_ranges)
-    date_ranges_cleaned = [(item.split(" - ")[0].replace("(work)", "").replace("(education)", "").strip(), item.split(" - ")[1].replace("(work)", "").replace("(education)", "").strip()) for item in filtered_date_ranges]
+    date_ranges_cleaned = [(item.split(" - ")[0].replace("(work)", "").replace("(education)", "").replace("(internship)", "").strip(), item.split(" - ")[1].replace("(work)", "").replace("(education)", "").replace("(internship)", "").strip()) for item in filtered_date_ranges]
 
     sorted_date_ranges = sorted(date_ranges_cleaned, key=lambda x: (int(x[0].split(" ")[1]), month_to_num(x[0].split(" ")[0])), reverse=True)
 
