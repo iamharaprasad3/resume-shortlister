@@ -300,7 +300,6 @@ def runningmain(text_content, file_name, text):
         if "(work)" in period_type:
             start_month, start_year = work_period.split(" ")
             end_month, end_year = parts[1].split(" ")[0], parts[1].split(" ")[1]
-            end_year = end_year.replace(" (work) ")
             end_year = end_year.replace(" (work)")
             end_year = end_year.replace("(work) ")
             end_year = end_year.replace("(work)", "")
