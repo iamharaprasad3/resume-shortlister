@@ -302,6 +302,7 @@ def runningmain(text_content, file_name, text):
             end_month, end_year = parts[1].split(" ")[0], parts[1].split(" ")[1]
             end_year = end_year.replace(" (work) ")
             end_year = end_year.replace(" (work)")
+            end_year = end_year.replace("(work) ")
             end_year = end_year.replace("(work)", "")
 
             duration = calculate_duration(start_month, int(start_year), end_month, int(end_year))
