@@ -234,13 +234,13 @@ def extract_scores(academic_scores):
         return 0
 
 def extract_year_score(text_content):
-    content =  '''
+    content =  ''' 
                             This is the text extracted from the resume of a candidate - {text_content}
                             Return a JSON with two fields containing lists, first is the list of date ranges named date_ranges that the candidate has mentioned in the resume, for example if someone has done an internship from jan 2021 - aug 2021, send this range as January 2021 - August 2021(internship), 
                             similarly if someone has worked from Nov’17-Present, add it to the date ranges list as November 2007 - Present(work), and if someone has mentioned the dates of their degree it should be added as 2016-2020(education), if a date range inside the text content ends with present, till now or today like July 2019 - today, convert words like today, till now, till today to the word present, these dates are only for example dont add them in the final list. 
                             Dont extract dates of any certifications or anything other than the things mentioned above and arrange this list of date ranges in order of recent dates to past dates. This should be in a standard format - "Month Year - Month Year(Type of date_range)" and they should be sorted in descending order of the left side date of the date ranges.
                             The second list named academic_scores should be the list of academic scores found in the resume of the candidate, percentage or cgpa of graduation, post graduation or school
-                            if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2         '''
+                            if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2'''
 
     formatted_text = content.format(
         text_content=text_content
@@ -277,12 +277,9 @@ def runningmain(text_content, file_name, text):
     date_ranges = response_data.get('date_ranges', [])
     academic_scores = response_data.get('academic_scores', [])
 
-    less_month_cnt = 0
-    month_flag = False
     new_job_start_date = None
     previous_job_end_date = None
     gaps = 0
-    total_months = 0
     duration = 0
     last_work_end_date = None
 
@@ -296,10 +293,9 @@ def runningmain(text_content, file_name, text):
         date_range = date_range.replace("today", datetime.now().strftime("%b %Y"))
         date_range = date_range.replace("Today", datetime.now().strftime("%b %Y"))
 
-
         parts = date_range.split(" - ")
         work_period = parts[0]
-        period_type = parts[1]
+        period_type = parts[1] 
 
         if "(work)" in period_type:
             start_month, start_year = work_period.split(" ")
@@ -307,19 +303,9 @@ def runningmain(text_content, file_name, text):
             end_year = end_year.replace("(work)", "")
             end_year = end_year.replace("(education)", "")
             end_year = end_year.replace("(internship)", "")
-            end_year = end_year.replace("(Work)", "")
-            end_year = end_year.replace("(Education)", "")
-            end_year = end_year.replace("(Internship)", "")
-            end_year = end_year.replace(" (work)", "")
-            end_year = end_year.replace(" (education)", "")
-            end_year = end_year.replace(" (internship)", "")
-            end_year = end_year.replace(" (Work)", "")
-            end_year = end_year.replace(" (Education)", "")
-            end_year = end_year.replace(" (Internship)", "")
-            end_year = end_year.replace("(.)", "")
-            
+
             duration = calculate_duration(start_month, int(start_year), end_month, int(end_year))
-            st.write(duration)
+
             if duration < 12:
                 less_than_12 += 1
 
@@ -327,33 +313,30 @@ def runningmain(text_content, file_name, text):
 
         total_experience += duration
 
-        date_range = date_range.replace(" (work)", "")
-        date_range = date_range.replace(" (education)", "")
-        date_range = date_range.replace(" (internship)", "")
-        date_range = date_range.replace("(Work)", "")
-        date_range = date_range.replace("(Education)", "")
-        date_range = date_range.replace("(Internship)", "")
-        date_range = date_range.replace("(work)", "")
-        date_range = date_range.replace("(education)", "")
-        date_range = date_range.replace("(internship)", "")
-        date_range = date_range.replace(" (Work)", "")
-        date_range = date_range.replace(" (Education)", "")
-        date_range = date_range.replace(" (Internship)", "")
-        date_range = date_range.replace(".", "")
-        start_date, end_date = [date.strip() for date in date_range.split(' - ')]
-        
-        try:
-            months_difference = calculate_month_difference(start_date, end_date)
-            total_months = total_months + months_difference
-        except requests.exceptions.RequestException as e:
-            # print({e})
-            break 
+    education_encountered = False
+    filtered_date_ranges = []
 
+    for item in date_ranges:
+        if "(education)" in item:
+            if not education_encountered:
+                filtered_date_ranges.append(item)
+                education_encountered = True
+        else:
+            filtered_date_ranges.append(item)
+
+    print(filtered_date_ranges)
+    date_ranges_cleaned = [(item.split(" - ")[0].replace("(work)", "").replace("(education)", "").strip(), item.split(" - ")[1].replace("(work)", "").replace("(education)", "").strip()) for item in filtered_date_ranges]
+
+    sorted_date_ranges = sorted(date_ranges_cleaned, key=lambda x: (int(x[0].split(" ")[1]), month_to_num(x[0].split(" ")[0])), reverse=True)
+
+    for date in sorted_date_ranges:
+        print(date)
+    
+    for dates in sorted_date_ranges:
+        start_date, end_date = dates[0], dates[1]
+
+        months_difference = 0
         if months_difference is not None:
-            if months_difference < 12:
-                less_month_cnt += 1
-            print(f"Time between {start_date} and {end_date}: {months_difference} months")
-            # st.write(f"Time between {start_date} and {end_date}: {months_difference} months")
 
             if new_job_start_date:
                 previous_job_end_date = end_date
@@ -362,12 +345,9 @@ def runningmain(text_content, file_name, text):
                     previous_job_end_date = None
                 else:
                     print("prev_job_end_date = ", previous_job_end_date)
-                    # st.write("prev_job_end_date = ", previous_job_end_date)
                     print("new_job_Start_date = ", new_job_start_date)
-                    # st.write("new_job_Start_date = ", new_job_start_date)
                     gap_months = calculate_month_difference(new_job_start_date, previous_job_end_date)
                     print("gaaap - ", gap_months)
-                    # st.write("gap - ", gap_months)
                     if(gap_months < -3):
                         gaps = gaps+1
                     new_job_start_date = start_date
@@ -375,14 +355,10 @@ def runningmain(text_content, file_name, text):
             else:
                 new_job_start_date = start_date 
                 print("new_job_Start_date = ", new_job_start_date)
-                # st.write("new_job_Start_date = ", new_job_start_date)
                 print("prev_job_end_date = ", previous_job_end_date)
-                # st.write("prev_job_end_date = ", previous_job_end_date)
 
         else:
             print(f"Currently employed from {start_date}")
-            # st.write(f"Currently employed from {start_date}")
-        #     previous_job_end_date = None
 
     if(len(date_ranges) == 0):
         st.write("Couldn't find experience")
@@ -397,17 +373,14 @@ def runningmain(text_content, file_name, text):
             st.write(f":red[Score till now] - **({str(total_score)}/50)**")
             dicc.update({"Job Switches":"PASS"})
         else:
-            total_score = total_score + 1
             print("leaving orgs early")
             st.write("**Candidate has switched jobs before completing 12 months of tenure**")
             dicc.update({"Job Switches":"FAIL"})
 
-        # print("total Months = ", total_months)
-        # st.write("total experience = ", total_months/12)
         if(total_experience < minimum_exp):
             print("Minimum Experience Criteria Doesn't match")
             st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
-            st.write(f"Experience = {total_experience}")
+            # total_score = -100
             dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
         else:
             dicc.update({"Experience":"PASS"})
@@ -419,7 +392,6 @@ def runningmain(text_content, file_name, text):
             st.write(f":red[Score till now] - **({str(total_score)}/50)**")
             dicc.update({"Career Breaks":"PASS"})
         else:
-            # total_score = total_score + 1
             print("having more than one 3 month career break")
             st.write(f"**Candidate has more than one career break of 3 months each**")
             st.write(f":red[Score till now] - **({str(total_score)}/50)**")
@@ -429,7 +401,7 @@ def runningmain(text_content, file_name, text):
     st.write(f"Scores found in the resume : {academic_scores}")
     score = extract_scores(academic_scores)
     if(score == 1):
-        total_score = total_score+10
+        total_score = total_score+5
         st.write(f"Candidate has academic scores in the acceptable range")
     else:
         st.write(f"Candidate has below par scores or no score found")
