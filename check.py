@@ -309,17 +309,29 @@ def runningmain(text_content, file_name, text):
 
     date_ranges = []
     for date_range in json_date_ranges:
-        start_date, end_date = date_range.split(' - ')
-        start_month, start_year = start_date.split('/')
+        try:
+            start_date, end_date = date_range.split(' - ')
+        except Exception as e:
+            start_date = date_range
+            end_date = date_range
+    
+        try:
+            start_month, start_year = start_date.split('/')
+        except Exception as e:
+            start_month = 5
+            start_year = start_date
         if('present' in end_date.lower()):
             end_month = current_date.month
             end_year = str(current_date.year) + "(w)"
         else:
-            end_month, end_year = end_date.split('/')
+            try:
+                end_month, end_year = end_date.split('/')
+            except Exception as e:
+                end_month = 5
+                end_year = end_date
         start_year = normalize_year(start_year)
         end_year = normalize_year(end_year)  
         date_ranges.append((f"{start_month}/{start_year} - {end_month}/{end_year}"))
-
     print(date_ranges)
 
 
