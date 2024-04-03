@@ -12,8 +12,9 @@ import requests
 from io import BytesIO
 from spire.doc import *
 from spire.doc.common import *
-from dateutil.relativedelta import relativedelta
 import google.generativeai as genai
+from dateutil.relativedelta import relativedelta
+
 
 doc = Document()
 
@@ -239,7 +240,7 @@ def extract_year_score(text_content):
     content =  ''' 
     This is the text extracted from the resume of a candidate - {text_content}
     Return a JSON with two fields which will be lists named all_dates and academic_scores. The first field will contain list of date ranges. In all_dates, the list will contain all the date ranges mentioned by the candidate where they have worked in an organization as a full time employee(not internships) and the duration of their education, for example if someone has mentioned that the duration of their work in organization ABC was from May 2020 to Jan 2021, add it to the list as 5/2020 - 1/2021. 
-    If they have mentioned that they had their graduation from 2020-2024 add it to the second list as 5/2020-5/2024. If no month is mentioned in the date range automatically add the month as 5 and if the year is given in 2 digits like 2/14 automatically add 20 before it and make the year in 4 digits to 2/2014. Follow the same format for all the date ranges in the first and second list "staring month in digits/starting year in 4 digits - ending month in digits/ending year in 4 digits". Only add work date ranges and education date ranges and to differentiate between them add a "w" in brackets at the end of job work ranges.
+    If they have mentioned that they had their graduation from 2020-2024 add it to the second list as 5/2020-5/2024. If no month is mentioned in the date range automatically add the month as 5. Follow the same format for all the date ranges in the first and second list "staring month in digits/starting year in digits - ending month in digits/ending year in digits". Only add work date ranges and education date ranges and to differentiate between them add a "w" in brackets at the end of job work ranges.
     The second list named academic_scores should be the list of academic scores found in the resume of the candidate, percentage or cgpa of graduation, post graduation or school
     if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2          
     Please be consistent with this, so that everytime the same text content comes same dates should appear.
@@ -276,16 +277,56 @@ def runningmain(text_content, file_name, text):
 
     response_data = json.loads(desired_text)
 
-    date_ranges = response_data.get('all_dates', [])
+    json_date_ranges = response_data.get('all_dates', [])
     academic_scores = response_data.get('academic_scores', [])
 
     duration_list = []
     total_experience = 0
 
+    def normalize_year(year):
+        print(year)
+        if('w' in year or 'W' in year):
+            year = year.split('(')[0].strip()
+            if year.lower() == "present":
+                current_date = datetime.now()
+                year = str(current_date.year) 
+            elif len(year) == 2:
+                if int(year) >= 50:  
+                    year = "19" + year 
+                else:
+                    year = "20" + year 
+            year = year + '(w)'
+        else:
+            if year.lower() == "present":
+                current_date = datetime.now()
+                year = str(current_date.year)
+            elif len(year) == 2:
+                if int(year) >= 50:  
+                    year = "19" + year
+                else:
+                    year = "20" + year
+        return year
+
+    date_ranges = []
+    for date_range in json_date_ranges:
+        start_date, end_date = date_range.split(' - ')
+        start_month, start_year = start_date.split('/')
+        if('present' in end_date.lower()):
+            end_month = current_date.month
+            end_year = str(current_date.year) + "(w)"
+        else:
+            end_month, end_year = end_date.split('/')
+        start_year = normalize_year(start_year)
+        end_year = normalize_year(end_year)  
+        date_ranges.append((f"{start_month}/{start_year} - {end_month}/{end_year}"))
+
+    print(date_ranges)
+
+
     for date_range in date_ranges:
         start_date, end_date = date_range.split(' - ')
         if '(w)' in end_date:
-            end_date = end_date.split('(')[0].strip()  # Remove "(w)" and any other additional text
+            end_date = end_date.split('(')[0].strip() 
             print("end date ", end_date)
             months_difference = calculate_month_difference(start_date, end_date)
             print(months_difference)
