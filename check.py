@@ -23,6 +23,7 @@ min_qualification = ''
 keywords = []
 list_of_score = {}
 jd_done = False
+current_date = datetime.now()
 
 st.set_page_config(page_title="Addverb Resume Shortlister", page_icon="https://addverb.com/wp-content/uploads/2023/12/cropped-MicrosoftTeams-image-7.png", layout="centered")
 
@@ -100,10 +101,21 @@ def month_to_num(month):
         # try parsing it with a different format
         return datetime.strptime(month, "%B").month
 
-def calculate_duration(start_month, start_year, end_month, end_year):
-    start_date = datetime(start_year, month_to_num(start_month), 1)
-    end_date = datetime(end_year, month_to_num(end_month), 1)
-    return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month + 1
+
+def calculate_month_difference(start_date, end_date):
+    if end_date.lower().strip() == 'present' or end_date.lower().strip() == 'till now' or end_date.lower().strip() == 'till today' or end_date.lower().strip() == 'today':
+        end_datetime = current_date
+        print("end - ", end_datetime)
+    else:
+        end_month, end_year = map(int, end_date.split('/'))
+        end_datetime = datetime(end_year, end_month, 1)
+
+    start_month, start_year = map(int, start_date.split('/'))
+
+    start_datetime = datetime(start_year, start_month, 1)
+
+    difference = relativedelta(end_datetime, start_datetime)
+    return difference.years * 12 + difference.months
 
 def extract_content_between_keywords(text, keyword1, keyword2):
     pattern = re.compile(f'{re.escape(keyword1)}(.*?){re.escape(keyword2)}', re.IGNORECASE | re.DOTALL)
@@ -152,17 +164,6 @@ def convert_two_digit_year(date_string):
     else:
         return date_string
     
-def calculate_month_difference(start_date_str, end_date_str):
-    if 'present' in end_date_str.lower() or  'current' in end_date_str.lower() or 'till now' in end_date_str.lower() or 'till today' in end_date_str.lower() or 'today'  in end_date_str.lower():
-        end_date_str = datetime.now().strftime("%b %Y")
-
-    start_date = parser.parse(start_date_str)
-    end_date = parser.parse(end_date_str)
-
-    delta = relativedelta.relativedelta(end_date, start_date)
-    months_difference = delta.years * 12 + delta.months
-
-    return months_difference
 
 # Score or percentage extraction
 flag = 1    
@@ -235,12 +236,13 @@ def extract_scores(academic_scores):
 
 def extract_year_score(text_content):
     content =  ''' 
-                            This is the text extracted from the resume of a candidate - {text_content}
-                            Return a JSON with two fields containing lists, the letters in the whole list should be lowercase only,the first is the list of date ranges named date_ranges that the candidate has mentioned in the resume against any work experience or education, for example, if someone has done an internship from jan 2021 - Aug 2021, send this range as January 2021 - August 2021 (internship), 
-                            similarly if someone has worked from Nov’17-Present, add it to the date ranges list as November 2007 - Present (work), and if someone has mentioned the dates of their degrees like this "5/2016-6/2020" it should be added as "May 2016 - June 2020 (education)", all the date ranges should follow the same format - "Name of the month Year - Name of the month Year/Present (type of date ranges)" and the type of date ranges can only be either "work", "internship" or "education". All the fields in the format are compulsory, if something is missing out of these fields don't add it to the list. If a date range inside the text content ends with present, till now or today like July 2019 - today, convert words like today, till now, till today to the word "present", these dates are only for example dont add them in the final list. 
-                            Don't extract dates of any certifications or anything other than the date ranges and they should be sorted in descending order of the left side date of the date ranges in order of recent dates to past dates.
-                            The second list named academic_scores should be the list of academic scores found in the resume of the candidate, percentage or CGPA of graduation, post-graduation or school
-                            if the candidate has mentioned 9.8 or 98.2%, send me a list of scores as 9.8, 98.2'''
+    This is the text extracted from the resume of a candidate - {text_content}
+    Return a JSON with two fields which will be lists named all_dates and academic_scores. The first field will contain list of date ranges. In all_dates, the list will contain all the date ranges mentioned by the candidate where they have worked in an organization as a full time employee(not internships) and the duration of their education, for example if someone has mentioned that the duration of their work in organization ABC was from May 2020 to Jan 2021, add it to the list as 5/2020 - 1/2021. 
+    If they have mentioned that they had their graduation from 2020-2024 add it to the second list as 5/2020-5/2024. If no month is mentioned in the date range automatically add the month as 5. Follow the same format for all the date ranges in the first and second list "staring month in digits/starting year in digits - ending month in digits/ending year in digits". Only add work date ranges and education date ranges and to differentiate between them add a "w" in brackets at the end of job work ranges.
+    The second list named academic_scores should be the list of academic scores found in the resume of the candidate, percentage or cgpa of graduation, post graduation or school
+    if the candidate has mention 9.8 or 98.2%, send me a list of scores as 9.8, 98.2          
+    Please be consistent with this, so that everytime the same text content comes same dates should appear.
+    '''
 
     formatted_text = content.format(
         text_content=text_content
@@ -266,7 +268,6 @@ def runningmain(text_content, file_name, text):
 
     desired_text = extract_year_score(text_content)
 
-
     desired_text = desired_text.replace("```", "")
     desired_text = desired_text.replace("json", "")
     desired_text = desired_text.replace("```", "")
@@ -274,92 +275,41 @@ def runningmain(text_content, file_name, text):
 
     response_data = json.loads(desired_text)
 
-    date_ranges = response_data.get('date_ranges', [])
+    date_ranges = response_data.get('all_dates', [])
     academic_scores = response_data.get('academic_scores', [])
 
-    new_job_start_date = None
-    previous_job_end_date = None
-    gaps = 0
-    duration = 0
-    last_work_end_date = None
+    duration_list = []
+    total_experience = 0
 
     for date_range in date_ranges:
-        print("hjhhjhj----", date_range)
-        date_range = date_range.replace("Present", datetime.now().strftime("%b %Y"))
-        date_range = date_range.replace("PRESENT", datetime.now().strftime("%b %Y"))
-        date_range = date_range.replace("present", datetime.now().strftime("%b %Y"))
-        date_range = date_range.replace("till now", datetime.now().strftime("%b %Y"))
-        date_range = date_range.replace("Till Now", datetime.now().strftime("%b %Y"))
-        date_range = date_range.replace("Till now", datetime.now().strftime("%b %Y"))
-        date_range = date_range.replace("today", datetime.now().strftime("%b %Y"))
-
-        parts = date_range.split(" - ")
-        work_period = parts[0]
-        period_type = parts[1] 
-
-        if "(work)" in period_type:
-            start_month, start_year = work_period.split(" ")
-            end_month, end_year = parts[1].split(" ")[0], parts[1].split(" ")[1]
-            end_year = end_year.replace(" (work)", "")
-            end_year = end_year.replace("(work) ", "")
-            end_year = end_year.replace("(work)", "")
-
-            duration = calculate_duration(start_month, int(start_year), end_month, int(end_year))
-
-            if duration < 12:
+        start_date, end_date = date_range.split(' - ')
+        if '(w)' in end_date:
+            end_date = end_date.split('(')[0].strip()  # Remove "(w)" and any other additional text
+            print("end date ", end_date)
+            months_difference = calculate_month_difference(start_date, end_date)
+            print(months_difference)
+            if(months_difference<12):
                 less_than_12 += 1
+            total_experience += months_difference
 
-            last_work_end_date = datetime(int(end_year), month_to_num(end_month), 1)
+        duration_list.append((start_date, end_date))
 
-        total_experience += duration
 
-    education_encountered = False
-    filtered_date_ranges = []
-
-    for item in date_ranges:
-        if "(education)" in item:
-            if not education_encountered:
-                filtered_date_ranges.append(item)
-                education_encountered = True
-        else:
-            filtered_date_ranges.append(item)
-
-    print(filtered_date_ranges)
-    date_ranges_cleaned = [(item.split(" - ")[0].replace("(work)", "").replace("(education)", "").replace("(internship)", "").strip(), item.split(" - ")[1].replace("(work)", "").replace("(education)", "").replace("(internship)", "").strip()) for item in filtered_date_ranges]
-
-    sorted_date_ranges = sorted(date_ranges_cleaned, key=lambda x: (int(x[0].split(" ")[1]), month_to_num(x[0].split(" ")[0])), reverse=True)
+    sorted_date_ranges = sorted(duration_list, key=lambda x: datetime.strptime(x[0], "%m/%Y"), reverse=True)
 
     for date in sorted_date_ranges:
         print(date)
+
+    gaps = 0
+    for i in range(0, len(sorted_date_ranges)):
+        if(i+1 < len(sorted_date_ranges)):
+            previous_end_date = sorted_date_ranges[i+1][1]
+            start_date = sorted_date_ranges[i][0]
+            gap_months = calculate_month_difference(start_date, previous_end_date)
+            print("gapp ", gap_months)
+            if gap_months > 3:
+                gaps += 1
     
-    for dates in sorted_date_ranges:
-        start_date, end_date = dates[0], dates[1]
-
-        months_difference = 0
-        if months_difference is not None:
-
-            if new_job_start_date:
-                previous_job_end_date = end_date
-                if previous_job_end_date == 'present':
-                    new_job_start_date = start_date
-                    previous_job_end_date = None
-                else:
-                    print("prev_job_end_date = ", previous_job_end_date)
-                    print("new_job_Start_date = ", new_job_start_date)
-                    gap_months = calculate_month_difference(new_job_start_date, previous_job_end_date)
-                    print("gaaap - ", gap_months)
-                    if(gap_months < -3):
-                        gaps = gaps+1
-                    new_job_start_date = start_date
-                    previous_job_end_date = None
-            else:
-                new_job_start_date = start_date 
-                print("new_job_Start_date = ", new_job_start_date)
-                print("prev_job_end_date = ", previous_job_end_date)
-
-        else:
-            print(f"Currently employed from {start_date}")
-
     if(len(date_ranges) == 0):
         st.write("Couldn't find experience")
         dicc.update({"Experience":"NOT FOUND"})
@@ -377,7 +327,7 @@ def runningmain(text_content, file_name, text):
             st.write("**Candidate has switched jobs before completing 12 months of tenure**")
             dicc.update({"Job Switches":"FAIL"})
 
-        if(total_experience < minimum_exp):
+        if(total_experience/12 < minimum_exp):
             print("Minimum Experience Criteria Doesn't match")
             st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
             # total_score = -100
