@@ -12,6 +12,7 @@ import requests
 from io import BytesIO
 from spire.doc import *
 from spire.doc.common import *
+from dateutil.relativedelta import relativedelta
 import google.generativeai as genai
 
 doc = Document()
