@@ -421,7 +421,7 @@ def runningmain(text_content, file_name, text):
 
     for degree in check_degrees:
         for word in degree:
-            if word in text:
+            if word in text_content:
                 total_score += 5
                 break
 
