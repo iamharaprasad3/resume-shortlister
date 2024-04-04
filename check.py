@@ -26,6 +26,13 @@ keywords = []
 list_of_score = {}
 jd_done = False
 current_date = datetime.now()
+btech = ['B Tech', 'BTech', 'B Tech', 'B.Tech', 'B. Tech', 'Bachelor of Technology', 'Bachelors of Technology', 'BE', 'B.E', 'Bachelor of Engineering', 'Bachelors of Engineering', "Bachelor's degree", ]
+mba = ['MBA', 'M.B.A', 'Masters in Business Administration']
+diploma = ['diploma', 'Diploma']
+degrees = [btech, mba, diploma]
+check_degrees = []
+min_qual = []
+
 
 st.set_page_config(page_title="Addverb Resume Shortlister", page_icon="https://addverb.com/wp-content/uploads/2023/12/cropped-MicrosoftTeams-image-7.png", layout="centered")
 
@@ -412,6 +419,13 @@ def runningmain(text_content, file_name, text):
     
     st.write(f":red[Score after results extraction] - **({str(total_score)}/50)**")
 
+    for degree in check_degrees:
+        for word in degree:
+            if word in text:
+                total_score += 5
+                break
+
+    st.write(f":red[Score after min. qualification check] - **({str(total_score)}/50)**")
 
     # keywords
     total_words = 0
@@ -500,6 +514,14 @@ else:
     
     keywords = extract_technical_keywords(tech_skills_para)
 
+    for degree in degrees:
+        for word in degree:
+            if word in text:
+                check_degrees.append(degree)
+                min_qual.append(word)
+                break
+
+
     print("Role - " + role)
     print("Department - " + department)
     print("Minimum Experience - ", min_ex)
@@ -518,6 +540,9 @@ else:
         st.write("Couldn't parse minimum experience, please write")
         minimum_exp = int(st.text_input("Please enter a single digit"))
     print("minimum experience - ", minimum_exp)
+    min_q = (' / ').join([str(item) for item in min_qual])
+    st.write(f"Minimum Qualification Required - ***{min_q}***")
+
 
     jd_done = True
 
