@@ -312,7 +312,7 @@ def runningmain(text_content, file_name, text):
         try:
             start_date, end_date = date_range.split(' - ')
         except Exception as e:
-            start_date = date_range
+            start_date = date_range.split('(')[0].strip()
             end_date = date_range
     
         try:
