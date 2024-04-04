@@ -551,9 +551,11 @@ if(jd_done):
             try:
                 runningmain(text_content, uploaded_resume.name, text)
             except Exception as e:
-                st.write("exception with this one")
-                st.write(e)
-                runningmain(text_content, uploaded_resume.name, text)
+                try:
+                    runningmain(text_content, uploaded_resume.name, text)
+                except Exception as e:
+                    st.write("exception with this one")
+                    st.write(e)
 
 
 sorted_scores = sorted(list_of_score.items(), key=lambda x: x[1]['TOTAL SCORE'], reverse=True)
