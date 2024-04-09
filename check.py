@@ -393,6 +393,8 @@ def runningmain(text_content, file_name, text):
             st.write("***:red[MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH]***")
             # total_score = -100
             dicc.update({"Experience":"MINIMUM EXPERIENCE CRITERIA DOESN'T MATCH"})
+        elif(total_experience/12 > max_exp):
+            dicc.update({"Experience":"EXPERIENCE MORE THAN MAXIMUM EXPERIENCE REQUIRED"})
         else:
             dicc.update({"Experience":"PASS"})
 
@@ -425,12 +427,16 @@ def runningmain(text_content, file_name, text):
     for degree in check_degrees:
         for word in degree:
             if word in text_content:
-                total_score += 5
                 deg_flag = False
                 break
 
     if(deg_flag):
        total_score += 3
+       dicc.update({"Min. Qual":"Qualification Matched"})
+    else:
+        total_score += 5
+        dicc.update({"Min. Qual":"Qualification Doesn't Match"})
+
 
     st.write(f":red[Score after min. qualification check] - **({str(total_score)}/50)**")
 
@@ -540,16 +546,22 @@ else:
     st.write("Experience Required - ")
     for i in min_ex:
         st.markdown(f"-  + ***{i}***")
-    pattern = re.compile(r'\b(\d+)\b')
-    try:
-        minimum_exp = int(pattern.search(min_ex[0]).group(1)) if pattern.search(min_ex[0]) else None
-    except Exception as e:
+        pattern = r'(\d+)\s*(?:-|to)\s*(\d+)\s*years'
+        match = re.search(pattern, text.lower())
+    if match:
+        minimum_exp = int(match.group(1))
+        max_exp = int(match.group(2))
+    else:
         st.write("Couldn't parse minimum experience, please write")
-        minimum_exp = int(st.text_input("Please enter a single digit"))
+        minimum_exp = int(st.text_input("Please enter a single digit as Minimum Experience"))
+        max_exp = int(st.text_input("Please enter a single digit as Maximum Experience"))
     print("minimum experience - ", minimum_exp)
+    print("minimum experience - ", max_exp)
+
     min_q = (' / ').join([str(item) for item in min_qual])
     st.write(f"Minimum Qualification Required - ***{min_q}***")
 
+    
 
     jd_done = True
 
@@ -598,7 +610,7 @@ for file_name, attributes in sorted_scores:
     row.extend(attributes.values())
     data.append(row)
 
-df = pd.DataFrame(data, columns=["File Name", "Job Switch", "Experience", "Career Breaks", "Scores" ,"Keyword Matching Percentage", "Similarity Score", "Result", "Total Score"])
+df = pd.DataFrame(data, columns=["File Name", "Job Switch", "Experience", "Career Breaks", "Scores", "Min. Qual" ,"Keyword Matching Percentage", "Similarity Score", "Result", "Total Score"])
 
 csv = df.to_csv().encode('utf-8')
 
