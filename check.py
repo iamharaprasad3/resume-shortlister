@@ -414,16 +414,23 @@ def runningmain(text_content, file_name, text):
     if(score == 1):
         total_score = total_score+5
         st.write(f"Candidate has academic scores in the acceptable range")
+        dicc.update({"Scores":"scores in the acceptable range"})
     else:
         st.write(f"Candidate has below par scores or no score found")
+        dicc.update({"Scores":"scores not in the acceptable range"})
     
     st.write(f":red[Score after results extraction] - **({str(total_score)}/50)**")
 
+    deg_flag = True
     for degree in check_degrees:
         for word in degree:
             if word in text_content:
                 total_score += 5
+                deg_flag = False
                 break
+
+    if(deg_flag):
+       total_score += 3
 
     st.write(f":red[Score after min. qualification check] - **({str(total_score)}/50)**")
 
@@ -591,7 +598,7 @@ for file_name, attributes in sorted_scores:
     row.extend(attributes.values())
     data.append(row)
 
-df = pd.DataFrame(data, columns=["File Name", "Job Switch", "Experience", "Career Breaks", "Keyword Matching Percentage", "Similarity Score", "Result", "Total Score"])
+df = pd.DataFrame(data, columns=["File Name", "Job Switch", "Experience", "Career Breaks", "Scores" ,"Keyword Matching Percentage", "Similarity Score", "Result", "Total Score"])
 
 csv = df.to_csv().encode('utf-8')
 
